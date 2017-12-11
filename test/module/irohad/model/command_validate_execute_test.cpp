@@ -1243,6 +1243,7 @@ class SetAccountDetailTest : public CommandValidateExecuteTest {
     role_permissions = {can_set_quorum};
   }
   std::shared_ptr<SetAccountDetail> cmd;
+  std::string needed_permission = can_set_detail;
 };
 
 /**
@@ -1250,7 +1251,7 @@ class SetAccountDetailTest : public CommandValidateExecuteTest {
  * @then successfully execute the command
  */
 TEST_F(SetAccountDetailTest, ValidWhenCreatorHasPermissions) {
-  EXPECT_CALL(*wsv_command, setAccountKV(_, _, _)).WillOnce(Return(true));
+  EXPECT_CALL(*wsv_command, setAccountKV(_, _, _, _)).WillOnce(Return(true));
   ASSERT_TRUE(validateAndExecute());
 }
 
@@ -1260,5 +1261,8 @@ TEST_F(SetAccountDetailTest, ValidWhenCreatorHasPermissions) {
  */
 TEST_F(SetAccountDetailTest, InValidWhenOtherCreator) {
   cmd->account_id = account_id;
+  EXPECT_CALL(*wsv_query, hasAccountGrantablePermission(
+      admin_id, cmd->account_id, needed_permission))
+      .WillOnce(Return(false));
   ASSERT_FALSE(validateAndExecute());
 }
